@@ -1,0 +1,278 @@
+<HTML>
+<BODY BGCOLOR="white">
+<PRE>
+<FONT color="green">001</FONT>    package org.codemonkey.util;<a name="line.1"></a>
+<FONT color="green">002</FONT>    <a name="line.2"></a>
+<FONT color="green">003</FONT>    import java.io.Serializable;<a name="line.3"></a>
+<FONT color="green">004</FONT>    import java.lang.reflect.Field;<a name="line.4"></a>
+<FONT color="green">005</FONT>    import java.lang.reflect.InvocationTargetException;<a name="line.5"></a>
+<FONT color="green">006</FONT>    import java.lang.reflect.ParameterizedType;<a name="line.6"></a>
+<FONT color="green">007</FONT>    import java.util.ArrayList;<a name="line.7"></a>
+<FONT color="green">008</FONT>    import java.util.Arrays;<a name="line.8"></a>
+<FONT color="green">009</FONT>    import java.util.Collection;<a name="line.9"></a>
+<FONT color="green">010</FONT>    import java.util.EnumSet;<a name="line.10"></a>
+<FONT color="green">011</FONT>    import java.util.LinkedList;<a name="line.11"></a>
+<FONT color="green">012</FONT>    import java.util.List;<a name="line.12"></a>
+<FONT color="green">013</FONT>    import java.util.Map;<a name="line.13"></a>
+<FONT color="green">014</FONT>    <a name="line.14"></a>
+<FONT color="green">015</FONT>    import org.codemonkey.javareflection.FieldUtils;<a name="line.15"></a>
+<FONT color="green">016</FONT>    import org.codemonkey.javareflection.FieldUtils.BeanRestriction;<a name="line.16"></a>
+<FONT color="green">017</FONT>    import org.codemonkey.javareflection.FieldUtils.Visibility;<a name="line.17"></a>
+<FONT color="green">018</FONT>    import org.codemonkey.javareflection.FieldWrapper;<a name="line.18"></a>
+<FONT color="green">019</FONT>    import org.codemonkey.javareflection.JReflect;<a name="line.19"></a>
+<FONT color="green">020</FONT>    import org.codemonkey.javareflection.ValueConverter;<a name="line.20"></a>
+<FONT color="green">021</FONT>    import org.codemonkey.javareflection.ValueConverter.IncompatibleTypeException;<a name="line.21"></a>
+<FONT color="green">022</FONT>    <a name="line.22"></a>
+<FONT color="green">023</FONT>    /**<a name="line.23"></a>
+<FONT color="green">024</FONT>     * Helper utility for interpreting encoded strings, including complete reflective decoding of objects. In effect this behavior mimics<a name="line.24"></a>
+<FONT color="green">025</FONT>     * serialization (see {@link Serializable}), except that the result is a hyper portable and ultra small serialized string.<a name="line.25"></a>
+<FONT color="green">026</FONT>     * <a name="line.26"></a>
+<FONT color="green">027</FONT>     * @author Benny Bottema<a name="line.27"></a>
+<FONT color="green">028</FONT>     * @since 1.0<a name="line.28"></a>
+<FONT color="green">029</FONT>     */<a name="line.29"></a>
+<FONT color="green">030</FONT>    public final class DecoderUtil {<a name="line.30"></a>
+<FONT color="green">031</FONT>    <a name="line.31"></a>
+<FONT color="green">032</FONT>            /**<a name="line.32"></a>
+<FONT color="green">033</FONT>             * Separates the length of a value from its value. Needed to be able to occupy multiply characters for denoting the value's length.<a name="line.33"></a>
+<FONT color="green">034</FONT>             */<a name="line.34"></a>
+<FONT color="green">035</FONT>            private static final String VALUE_SEPERATOR = "|";<a name="line.35"></a>
+<FONT color="green">036</FONT>            /**<a name="line.36"></a>
+<FONT color="green">037</FONT>             * The &lt;code&gt;null&lt;/code&gt; notation for datagrams.<a name="line.37"></a>
+<FONT color="green">038</FONT>             */<a name="line.38"></a>
+<FONT color="green">039</FONT>            private static final String ENCODED_NULL = "-";<a name="line.39"></a>
+<FONT color="green">040</FONT>    <a name="line.40"></a>
+<FONT color="green">041</FONT>            /**<a name="line.41"></a>
+<FONT color="green">042</FONT>             * Decodes a datagram into a list of objects, where the first token should be the number of encoded objects. For each count a decodable<a name="line.42"></a>
+<FONT color="green">043</FONT>             * object {@link DatagramDecoder} or 'common' type is reflectively being instantiated, which in case of a &lt;code&gt;DatagramDecoder&lt;/code&gt;<a name="line.43"></a>
+<FONT color="green">044</FONT>             * then becomes responsible for decoding a nested part of the encoded datagram value.<a name="line.44"></a>
+<FONT color="green">045</FONT>             * <a name="line.45"></a>
+<FONT color="green">046</FONT>             * @param &lt;T&gt; Any subtype that is either a &lt;code&gt;DatagramDecoder&lt;/code&gt; type or a common type (String, Number, char etc. etc.).<a name="line.46"></a>
+<FONT color="green">047</FONT>             * @param encodedString The datagram encoded value, starting with the number of items, where each item may consist of a group of items<a name="line.47"></a>
+<FONT color="green">048</FONT>             *            (in case of a &lt;code&gt;DatagramDecoder&lt;/code&gt;).<a name="line.48"></a>
+<FONT color="green">049</FONT>             * @param _class Any subtype that is either a &lt;code&gt;DatagramDecoder&lt;/code&gt; type or a common type (String, Number, char etc. etc.).<a name="line.49"></a>
+<FONT color="green">050</FONT>             * @return A list of decoded objects, which can be instances of a &lt;code&gt;DatagramDecoder&lt;/code&gt; implementation, or a list of common<a name="line.50"></a>
+<FONT color="green">051</FONT>             *         objects (a list of &lt;code&gt;Boolean&lt;/code&gt; values for example).<a name="line.51"></a>
+<FONT color="green">052</FONT>             */<a name="line.52"></a>
+<FONT color="green">053</FONT>            @SuppressWarnings("unchecked")<a name="line.53"></a>
+<FONT color="green">054</FONT>            public static &lt;T extends Object&gt; List&lt;T&gt; genericDecodeList(final StringBuilder encodedString, final Class&lt;T&gt; _class) {<a name="line.54"></a>
+<FONT color="green">055</FONT>                    if (!encodedString.toString().startsWith(ENCODED_NULL)) {<a name="line.55"></a>
+<FONT color="green">056</FONT>                            final List&lt;T&gt; decodedObjects = new ArrayList&lt;T&gt;();<a name="line.56"></a>
+<FONT color="green">057</FONT>                            final int count = countNext(encodedString);<a name="line.57"></a>
+<FONT color="green">058</FONT>                            for (int i = 0; i &lt; count; i++) {<a name="line.58"></a>
+<FONT color="green">059</FONT>                                    if (DatagramDecoder.class.isAssignableFrom(_class)) {<a name="line.59"></a>
+<FONT color="green">060</FONT>                                            final T decoder = JReflect.newInstanceSimple(_class);<a name="line.60"></a>
+<FONT color="green">061</FONT>                                            ((DatagramDecoder) decoder).decode(encodedString);<a name="line.61"></a>
+<FONT color="green">062</FONT>                                            decodedObjects.add(decoder);<a name="line.62"></a>
+<FONT color="green">063</FONT>                                    } else if (ValueConverter.isCommonType(_class)) { // Detect if we need to do manual common conversion, which is only<a name="line.63"></a>
+<FONT color="green">064</FONT>                                                                                                                                            // applicable if there is no parent object to set the value on<a name="line.64"></a>
+<FONT color="green">065</FONT>                                                                                                                                            // directly (in case of a Collection). So with things like lists we<a name="line.65"></a>
+<FONT color="green">066</FONT>                                                                                                                                            // need to decode common types ourselves, since you can't for<a name="line.66"></a>
+<FONT color="green">067</FONT>                                                                                                                                            // example reflectively fill a String object unless you make a<a name="line.67"></a>
+<FONT color="green">068</FONT>                                                                                                                                            // detection script that detects these exceptions per common type<a name="line.68"></a>
+<FONT color="green">069</FONT>                                                                                                                                            // exception so that you can pass it into the constructor or<a name="line.69"></a>
+<FONT color="green">070</FONT>                                                                                                                                            // whatever that type needs (which we won't because this is complex<a name="line.70"></a>
+<FONT color="green">071</FONT>                                                                                                                                            // enough already).<a name="line.71"></a>
+<FONT color="green">072</FONT>                                            final String stringValue = extractValue(encodedString);<a name="line.72"></a>
+<FONT color="green">073</FONT>                                            decodedObjects.add((T) ValueConverter.convert(stringValue, _class));<a name="line.73"></a>
+<FONT color="green">074</FONT>                                    } else {<a name="line.74"></a>
+<FONT color="green">075</FONT>                                            final T subject = JReflect.newInstanceSimple(_class);<a name="line.75"></a>
+<FONT color="green">076</FONT>                                            reflectiveDecode(subject, encodedString, _class);<a name="line.76"></a>
+<FONT color="green">077</FONT>                                            decodedObjects.add(subject);<a name="line.77"></a>
+<FONT color="green">078</FONT>                                    }<a name="line.78"></a>
+<FONT color="green">079</FONT>                            }<a name="line.79"></a>
+<FONT color="green">080</FONT>                            return decodedObjects;<a name="line.80"></a>
+<FONT color="green">081</FONT>                    } else {<a name="line.81"></a>
+<FONT color="green">082</FONT>                            // no support for null values within collection (we won't be able to detect whether the list should be null or the item<a name="line.82"></a>
+<FONT color="green">083</FONT>                            // within the collection)<a name="line.83"></a>
+<FONT color="green">084</FONT>                            final String value = extractValue(encodedString);<a name="line.84"></a>
+<FONT color="green">085</FONT>                            assert value == null : "extractValue should have returned null!";<a name="line.85"></a>
+<FONT color="green">086</FONT>                            return null;<a name="line.86"></a>
+<FONT color="green">087</FONT>                    }<a name="line.87"></a>
+<FONT color="green">088</FONT>            }<a name="line.88"></a>
+<FONT color="green">089</FONT>    <a name="line.89"></a>
+<FONT color="green">090</FONT>            /**<a name="line.90"></a>
+<FONT color="green">091</FONT>             * Decodes a datagram reflectively by inspecting the given &lt;code&gt;Class&lt;/code&gt; for all it fields, which are assumed to take part in the<a name="line.91"></a>
+<FONT color="green">092</FONT>             * decoding process. The values to apply to these fields are determined by {@link #extractValues(StringBuilder, int)}.&lt;br /&gt;<a name="line.92"></a>
+<FONT color="green">093</FONT>             * &lt;br /&gt;<a name="line.93"></a>
+<FONT color="green">094</FONT>             * This works only if the fields are encoded in the same order, which is only guaranteed by reflectively encoding using<a name="line.94"></a>
+<FONT color="green">095</FONT>             * {@link #reflectiveDecode(Object, StringBuilder, Class)}&lt;br /&gt;<a name="line.95"></a>
+<FONT color="green">096</FONT>             * &lt;br /&gt;<a name="line.96"></a>
+<FONT color="green">097</FONT>             * <a name="line.97"></a>
+<FONT color="green">098</FONT>             * @param subject The object that reflectively receives all the values found.<a name="line.98"></a>
+<FONT color="green">099</FONT>             * @param encodedString The encoded datagram value.<a name="line.99"></a>
+<FONT color="green">100</FONT>             * @param specificClass The specific type that should be introspected for its fields.<a name="line.100"></a>
+<FONT color="green">101</FONT>             * @see #convertValue(String, Class)<a name="line.101"></a>
+<FONT color="green">102</FONT>             */<a name="line.102"></a>
+<FONT color="green">103</FONT>            public static void reflectiveDecode(final Object subject, final StringBuilder encodedString, final Class&lt;?&gt; specificClass) {<a name="line.103"></a>
+<FONT color="green">104</FONT>                    final Map&lt;Class&lt;?&gt;, List&lt;FieldWrapper&gt;&gt; fieldMap = FieldUtils.collectFields(specificClass, specificClass,<a name="line.104"></a>
+<FONT color="green">105</FONT>                                    EnumSet.allOf(Visibility.class), EnumSet.of(BeanRestriction.YES_SETTER));<a name="line.105"></a>
+<FONT color="green">106</FONT>                    final List&lt;FieldWrapper&gt; fields = fieldMap.get(specificClass);<a name="line.106"></a>
+<FONT color="green">107</FONT>                    for (int i = 0; i &lt; fields.size(); i++) {<a name="line.107"></a>
+<FONT color="green">108</FONT>                            final FieldWrapper fieldWrapper = fields.get(i);<a name="line.108"></a>
+<FONT color="green">109</FONT>                            final Field field = fieldWrapper.getField();<a name="line.109"></a>
+<FONT color="green">110</FONT>                            final Object convertedValue;<a name="line.110"></a>
+<FONT color="green">111</FONT>                            if (Collection.class.isAssignableFrom(field.getType())) {<a name="line.111"></a>
+<FONT color="green">112</FONT>                                    convertedValue = genericDecodeList(encodedString,<a name="line.112"></a>
+<FONT color="green">113</FONT>                                                    (Class&lt;?&gt;) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]);<a name="line.113"></a>
+<FONT color="green">114</FONT>                            } else {<a name="line.114"></a>
+<FONT color="green">115</FONT>                                    convertedValue = convertValue(extractValue(encodedString), field.getType());<a name="line.115"></a>
+<FONT color="green">116</FONT>                            }<a name="line.116"></a>
+<FONT color="green">117</FONT>                            try {<a name="line.117"></a>
+<FONT color="green">118</FONT>                                    fieldWrapper.getSetter().invoke(subject, convertedValue);<a name="line.118"></a>
+<FONT color="green">119</FONT>                            } catch (final IllegalArgumentException e) {<a name="line.119"></a>
+<FONT color="green">120</FONT>                                    final String msg = String.format("unable to encode property '%s'", field.getName());<a name="line.120"></a>
+<FONT color="green">121</FONT>                                    throw new RuntimeException(msg, e);<a name="line.121"></a>
+<FONT color="green">122</FONT>                            } catch (final IllegalAccessException e) {<a name="line.122"></a>
+<FONT color="green">123</FONT>                                    final String msg = String.format("unable to encode property '%s'", field.getName());<a name="line.123"></a>
+<FONT color="green">124</FONT>                                    throw new RuntimeException(msg, e);<a name="line.124"></a>
+<FONT color="green">125</FONT>                            } catch (final InvocationTargetException e) {<a name="line.125"></a>
+<FONT color="green">126</FONT>                                    final String msg = String.format("unable to encode property '%s'", field.getName());<a name="line.126"></a>
+<FONT color="green">127</FONT>                                    throw new RuntimeException(msg, e);<a name="line.127"></a>
+<FONT color="green">128</FONT>                            }<a name="line.128"></a>
+<FONT color="green">129</FONT>                    }<a name="line.129"></a>
+<FONT color="green">130</FONT>            }<a name="line.130"></a>
+<FONT color="green">131</FONT>    <a name="line.131"></a>
+<FONT color="green">132</FONT>            /**<a name="line.132"></a>
+<FONT color="green">133</FONT>             * Performs a manual check for {@link SimpleSerialization} to convert the value, otherwise a reflection sweep is performed to convert<a name="line.133"></a>
+<FONT color="green">134</FONT>             * the value, if possible at all.<a name="line.134"></a>
+<FONT color="green">135</FONT>             * <a name="line.135"></a>
+<FONT color="green">136</FONT>             * @param value The value to convert.<a name="line.136"></a>
+<FONT color="green">137</FONT>             * @param targetType The type the value should be converted to.<a name="line.137"></a>
+<FONT color="green">138</FONT>             * @return A converted value using {@link SimpleSerialization} or reflection.<a name="line.138"></a>
+<FONT color="green">139</FONT>             * @see ValueConverter#convert(String, Class) Used to find the right converted value for the encoded datagram token.<a name="line.139"></a>
+<FONT color="green">140</FONT>             */<a name="line.140"></a>
+<FONT color="green">141</FONT>            private static Object convertValue(final String value, final Class&lt;?&gt; targetType) {<a name="line.141"></a>
+<FONT color="green">142</FONT>                    if (Arrays.asList(targetType.getInterfaces()).contains(SimpleSerialization.class)) {<a name="line.142"></a>
+<FONT color="green">143</FONT>                            try {<a name="line.143"></a>
+<FONT color="green">144</FONT>                                    if (targetType.isEnum()) {<a name="line.144"></a>
+<FONT color="green">145</FONT>                                            final Object[] consts = targetType.getEnumConstants();<a name="line.145"></a>
+<FONT color="green">146</FONT>                                            return ((SimpleSerialization&lt;?&gt;) consts[0]).deserialize(value);<a name="line.146"></a>
+<FONT color="green">147</FONT>                                    } else {<a name="line.147"></a>
+<FONT color="green">148</FONT>                                            final SimpleSerialization&lt;?&gt; object = (SimpleSerialization&lt;?&gt;) targetType.newInstance();<a name="line.148"></a>
+<FONT color="green">149</FONT>                                            return object.deserialize(value);<a name="line.149"></a>
+<FONT color="green">150</FONT>                                    }<a name="line.150"></a>
+<FONT color="green">151</FONT>                            } catch (final InstantiationException e) {<a name="line.151"></a>
+<FONT color="green">152</FONT>                                    final String msg = "%s targetType does support reflective conversion ([%s] missing no-args constructor?)";<a name="line.152"></a>
+<FONT color="green">153</FONT>                                    throw new IncompatibleTypeException(String.format(msg, SimpleSerialization.class.getSimpleName(), targetType.getName()), e);<a name="line.153"></a>
+<FONT color="green">154</FONT>                            } catch (final IllegalAccessException e) {<a name="line.154"></a>
+<FONT color="green">155</FONT>                                    final String msg = "%s targetType does support reflective conversion ([%s] missing public constructor?)";<a name="line.155"></a>
+<FONT color="green">156</FONT>                                    throw new IncompatibleTypeException(String.format(msg, SimpleSerialization.class.getSimpleName(), targetType.getName()), e);<a name="line.156"></a>
+<FONT color="green">157</FONT>                            }<a name="line.157"></a>
+<FONT color="green">158</FONT>                    }<a name="line.158"></a>
+<FONT color="green">159</FONT>                    return ValueConverter.convert(value, targetType);<a name="line.159"></a>
+<FONT color="green">160</FONT>            }<a name="line.160"></a>
+<FONT color="green">161</FONT>    <a name="line.161"></a>
+<FONT color="green">162</FONT>            /**<a name="line.162"></a>
+<FONT color="green">163</FONT>             * Shortcut method that calls {@link #extractValues(StringBuilder, int)} with argument of 1 and returns the first (and only) result<a name="line.163"></a>
+<FONT color="green">164</FONT>             * value.<a name="line.164"></a>
+<FONT color="green">165</FONT>             * <a name="line.165"></a>
+<FONT color="green">166</FONT>             * @param encodedString A datagram encoded string of which to interpret a single value from.<a name="line.166"></a>
+<FONT color="green">167</FONT>             * @return The first singular encoded value of the given datagram encoded string.<a name="line.167"></a>
+<FONT color="green">168</FONT>             * @see #extractValues(StringBuilder, int)<a name="line.168"></a>
+<FONT color="green">169</FONT>             */<a name="line.169"></a>
+<FONT color="green">170</FONT>            public static String extractValue(final StringBuilder encodedString) {<a name="line.170"></a>
+<FONT color="green">171</FONT>                    return extractValues(encodedString, 1).get(0);<a name="line.171"></a>
+<FONT color="green">172</FONT>            }<a name="line.172"></a>
+<FONT color="green">173</FONT>    <a name="line.173"></a>
+<FONT color="green">174</FONT>            /**<a name="line.174"></a>
+<FONT color="green">175</FONT>             * Extracts a given number of values from the datagram and returns the remaining encoded values.<a name="line.175"></a>
+<FONT color="green">176</FONT>             * <a name="line.176"></a>
+<FONT color="green">177</FONT>             * @param encodedString The datagram that contains at least the expected given number of encoded values.<a name="line.177"></a>
+<FONT color="green">178</FONT>             * @param count The expected number of encoded values.<a name="line.178"></a>
+<FONT color="green">179</FONT>             * @return The datagram minus the 'deserialized' values. Does &lt;strong&gt;consider&lt;/strong&gt; lists sizes!<a name="line.179"></a>
+<FONT color="green">180</FONT>             */<a name="line.180"></a>
+<FONT color="green">181</FONT>            public static List&lt;String&gt; extractValues(final StringBuilder encodedString, final int count) {<a name="line.181"></a>
+<FONT color="green">182</FONT>                    final LinkedList&lt;String&gt; result = new LinkedList&lt;String&gt;();<a name="line.182"></a>
+<FONT color="green">183</FONT>                    for (int i = 0; i &lt; count; i++) {<a name="line.183"></a>
+<FONT color="green">184</FONT>                            final int valueLength = countNext(encodedString);<a name="line.184"></a>
+<FONT color="green">185</FONT>                            final String encodedValue = encodedString.substring(0, valueLength);<a name="line.185"></a>
+<FONT color="green">186</FONT>                            result.add(encodedValue.equals(ENCODED_NULL) ? null : encodedValue);<a name="line.186"></a>
+<FONT color="green">187</FONT>                            encodedString.delete(0, valueLength);<a name="line.187"></a>
+<FONT color="green">188</FONT>                    }<a name="line.188"></a>
+<FONT color="green">189</FONT>                    return result;<a name="line.189"></a>
+<FONT color="green">190</FONT>            }<a name="line.190"></a>
+<FONT color="green">191</FONT>    <a name="line.191"></a>
+<FONT color="green">192</FONT>            /**<a name="line.192"></a>
+<FONT color="green">193</FONT>             * Returns the encoded length of the next token &lt;em&gt;and removes this indication so that the encoded string starts with the token for<a name="line.193"></a>
+<FONT color="green">194</FONT>             * further processing&lt;/em&gt;.<a name="line.194"></a>
+<FONT color="green">195</FONT>             * <a name="line.195"></a>
+<FONT color="green">196</FONT>             * @param encodedString The string containing the datagram encoded values including length notations.<a name="line.196"></a>
+<FONT color="green">197</FONT>             * @return The length of the next token.<a name="line.197"></a>
+<FONT color="green">198</FONT>             */<a name="line.198"></a>
+<FONT color="green">199</FONT>            public static int countNext(final StringBuilder encodedString) {<a name="line.199"></a>
+<FONT color="green">200</FONT>                    if (encodedString == null || encodedString.length() == 0) {<a name="line.200"></a>
+<FONT color="green">201</FONT>                            return 0;<a name="line.201"></a>
+<FONT color="green">202</FONT>                    } else if (encodedString.toString().startsWith(ENCODED_NULL)) {<a name="line.202"></a>
+<FONT color="green">203</FONT>                            return 1;<a name="line.203"></a>
+<FONT color="green">204</FONT>                    } else {<a name="line.204"></a>
+<FONT color="green">205</FONT>                            final String count = encodedString.substring(0, encodedString.indexOf(VALUE_SEPERATOR));<a name="line.205"></a>
+<FONT color="green">206</FONT>                            final int valueStart = encodedString.indexOf(VALUE_SEPERATOR) + 1;<a name="line.206"></a>
+<FONT color="green">207</FONT>                            encodedString.delete(0, valueStart);<a name="line.207"></a>
+<FONT color="green">208</FONT>                            return Integer.valueOf(count);<a name="line.208"></a>
+<FONT color="green">209</FONT>                    }<a name="line.209"></a>
+<FONT color="green">210</FONT>            }<a name="line.210"></a>
+<FONT color="green">211</FONT>    <a name="line.211"></a>
+<FONT color="green">212</FONT>    }<a name="line.212"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>

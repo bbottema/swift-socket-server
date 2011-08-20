@@ -1,0 +1,11 @@
+<html>  	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	
+	<body>Provides the classes to create a World Server, an extension of the Request Socket Server.  		 		 		 		 		 		 		 		 		 		 		
+		<p>Provides two classes that interact with eachother. The {@link org.codemonkey.swiftworldserver.WorldServer} itself, which manages a 'heart beat' loop, progresses the world simulation and executes client request objects, and the {@link org.codemonkey.swiftworldserver.WorldContext}, which is used to execute decoded client request objects against (so that it can invoke world specific methods). 		 		 		 		 		 		 		 		 		 		 		
+		</p>		 		 		 		 		 		 		 		 		 		 		
+		<p>This extension furthers seperating the server-client interaction from the world simulation. Now all you need to do is define message objects and the methods on your  			 			 			 			 			 			 			 			 			 			 			
+			<code>WorldContext 			 			 			 			 			 			 			 			 			 			 			
+			</code> implementation that they then can invoke to interact with your world. 		 		 		 		 		 		 		 		 		 		 		
+		</p>
+		@since 1.0	 	 	 	 	 	 	 	 	 	 	 	 	 	
+	</body>
+</html>

@@ -1,0 +1,41 @@
+<project name="Swift Socket Server" basedir="." default="compile">
+
+	<target name="release" description="Updates Javadoc and creates new jars">
+		<ant-with-target target="release" />
+	</target>
+	
+	<target name="compile">
+		<ant-with-target target="compile" />
+	</target>
+	
+	<target name="test" description="compiles and runs junit tests">
+		<ant-with-target target="test" />
+	</target>
+	
+	<target name="jar" description="Compiles and jars the libraries">
+		<ant-with-target target="jar" />
+	</target>
+	
+	<target name="clean">
+		<ant-with-target target="clean" />
+	</target>
+	
+	<target name="jar-src" description="jars the frameworks sourcecode from both projects">
+		<ant-with-target target="jar-src" />
+	</target>
+	
+	<target name="update-javadoc" description="parses the javadoc comments from the source code, both for users and developers">
+		<ant-with-target target="update-javadoc" />
+	</target>
+	
+	<macrodef name="ant-with-target">
+		<attribute name="target" />
+		<sequential>
+			<echo message="SERVER" level="info" />
+			<ant target="@{target}" antfile="build.xml" dir="server" />
+			<echo message="CLIENT" level="info" />
+			<ant target="@{target}" antfile="build.xml" dir="client/java-client" />
+		</sequential>
+	</macrodef>
+
+</project>

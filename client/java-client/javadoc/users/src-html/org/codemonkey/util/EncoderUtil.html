@@ -1,0 +1,189 @@
+<HTML>
+<BODY BGCOLOR="white">
+<PRE>
+<FONT color="green">001</FONT>    package org.codemonkey.util;<a name="line.1"></a>
+<FONT color="green">002</FONT>    <a name="line.2"></a>
+<FONT color="green">003</FONT>    import java.lang.reflect.InvocationTargetException;<a name="line.3"></a>
+<FONT color="green">004</FONT>    import java.util.Collection;<a name="line.4"></a>
+<FONT color="green">005</FONT>    import java.util.EnumSet;<a name="line.5"></a>
+<FONT color="green">006</FONT>    import java.util.LinkedList;<a name="line.6"></a>
+<FONT color="green">007</FONT>    import java.util.List;<a name="line.7"></a>
+<FONT color="green">008</FONT>    import java.util.Map;<a name="line.8"></a>
+<FONT color="green">009</FONT>    <a name="line.9"></a>
+<FONT color="green">010</FONT>    import org.codemonkey.javareflection.FieldUtils;<a name="line.10"></a>
+<FONT color="green">011</FONT>    import org.codemonkey.javareflection.FieldUtils.BeanRestriction;<a name="line.11"></a>
+<FONT color="green">012</FONT>    import org.codemonkey.javareflection.FieldUtils.Visibility;<a name="line.12"></a>
+<FONT color="green">013</FONT>    import org.codemonkey.javareflection.FieldWrapper;<a name="line.13"></a>
+<FONT color="green">014</FONT>    <a name="line.14"></a>
+<FONT color="green">015</FONT>    /**<a name="line.15"></a>
+<FONT color="green">016</FONT>     * Helper utility for encoding (integers, strings etc.,lists), using java reflection.<a name="line.16"></a>
+<FONT color="green">017</FONT>     * <a name="line.17"></a>
+<FONT color="green">018</FONT>     * @author Benny Bottema<a name="line.18"></a>
+<FONT color="green">019</FONT>     * @since 1.0<a name="line.19"></a>
+<FONT color="green">020</FONT>     */<a name="line.20"></a>
+<FONT color="green">021</FONT>    public final class EncoderUtil {<a name="line.21"></a>
+<FONT color="green">022</FONT>    <a name="line.22"></a>
+<FONT color="green">023</FONT>            /**<a name="line.23"></a>
+<FONT color="green">024</FONT>             * Separates the length of a value from its value. Needed to be able to occupy multiply characters for denoting the value's length.<a name="line.24"></a>
+<FONT color="green">025</FONT>             */<a name="line.25"></a>
+<FONT color="green">026</FONT>            public static final String VALUE_SEPERATOR = "|";<a name="line.26"></a>
+<FONT color="green">027</FONT>            /**<a name="line.27"></a>
+<FONT color="green">028</FONT>             * The &lt;code&gt;null&lt;/code&gt; notation for datagrams.<a name="line.28"></a>
+<FONT color="green">029</FONT>             */<a name="line.29"></a>
+<FONT color="green">030</FONT>            public static final String ENCODED_NULL = "-";<a name="line.30"></a>
+<FONT color="green">031</FONT>    <a name="line.31"></a>
+<FONT color="green">032</FONT>            /**<a name="line.32"></a>
+<FONT color="green">033</FONT>             * // FIXME JavaDoc does not reflect function<a name="line.33"></a>
+<FONT color="green">034</FONT>             * &lt;p&gt;<a name="line.34"></a>
+<FONT color="green">035</FONT>             * Combines the length of a given string and the value into a datagram notation. &lt;code&gt;null&lt;/code&gt; values are represented as '<a name="line.35"></a>
+<FONT color="green">036</FONT>             * {@value #ENCODED_NULL}'.<a name="line.36"></a>
+<FONT color="green">037</FONT>             * <a name="line.37"></a>
+<FONT color="green">038</FONT>             * @param values A list of values to encode in a datagram string.<a name="line.38"></a>
+<FONT color="green">039</FONT>             * @return A sequence of encoded values.<a name="line.39"></a>
+<FONT color="green">040</FONT>             * @see DatagramEncoder#encode()<a name="line.40"></a>
+<FONT color="green">041</FONT>             */<a name="line.41"></a>
+<FONT color="green">042</FONT>            public static String encode(final Object... values) {<a name="line.42"></a>
+<FONT color="green">043</FONT>                    final StringBuilder coded = new StringBuilder("");<a name="line.43"></a>
+<FONT color="green">044</FONT>                    for (final Object value : values) {<a name="line.44"></a>
+<FONT color="green">045</FONT>                            if (value != null) {<a name="line.45"></a>
+<FONT color="green">046</FONT>                                    final String encodedValue;<a name="line.46"></a>
+<FONT color="green">047</FONT>                                    if (value instanceof DatagramEncoder) {<a name="line.47"></a>
+<FONT color="green">048</FONT>                                            encodedValue = ((DatagramEncoder) value).encode();<a name="line.48"></a>
+<FONT color="green">049</FONT>                                            coded.append(encodedValue);<a name="line.49"></a>
+<FONT color="green">050</FONT>                                    } else if (value instanceof SimpleSerialization&lt;?&gt;) {<a name="line.50"></a>
+<FONT color="green">051</FONT>                                            encodedValue = ((SimpleSerialization&lt;?&gt;) value).serialize();<a name="line.51"></a>
+<FONT color="green">052</FONT>                                            coded.append(encodedValue.length() + VALUE_SEPERATOR + encodedValue);<a name="line.52"></a>
+<FONT color="green">053</FONT>                                    } else if (value instanceof Collection) {<a name="line.53"></a>
+<FONT color="green">054</FONT>                                            final Collection&lt;?&gt; collection = (Collection&lt;?&gt;) value;<a name="line.54"></a>
+<FONT color="green">055</FONT>                                            encodedValue = encode(collection.toArray());<a name="line.55"></a>
+<FONT color="green">056</FONT>                                            coded.append(collection.size() + VALUE_SEPERATOR + encodedValue);<a name="line.56"></a>
+<FONT color="green">057</FONT>                                    } else {<a name="line.57"></a>
+<FONT color="green">058</FONT>                                            encodedValue = String.valueOf(value);<a name="line.58"></a>
+<FONT color="green">059</FONT>                                            coded.append(encodedValue.length() + VALUE_SEPERATOR + encodedValue);<a name="line.59"></a>
+<FONT color="green">060</FONT>                                    }<a name="line.60"></a>
+<FONT color="green">061</FONT>                            } else {<a name="line.61"></a>
+<FONT color="green">062</FONT>                                    coded.append(ENCODED_NULL);<a name="line.62"></a>
+<FONT color="green">063</FONT>                            }<a name="line.63"></a>
+<FONT color="green">064</FONT>                    }<a name="line.64"></a>
+<FONT color="green">065</FONT>                    return coded.toString();<a name="line.65"></a>
+<FONT color="green">066</FONT>            }<a name="line.66"></a>
+<FONT color="green">067</FONT>    <a name="line.67"></a>
+<FONT color="green">068</FONT>            /**<a name="line.68"></a>
+<FONT color="green">069</FONT>             * Used to encode a list as a list (containing objects) instead of a collection of individual objects, like {@link #encode(Object...)} .<a name="line.69"></a>
+<FONT color="green">070</FONT>             * &lt;p&gt;<a name="line.70"></a>
+<FONT color="green">071</FONT>             * Combines the size of a given list and the value into a datagram notation. &lt;code&gt;null&lt;/code&gt; values are represented as '<a name="line.71"></a>
+<FONT color="green">072</FONT>             * {@value #ENCODED_NULL}'.<a name="line.72"></a>
+<FONT color="green">073</FONT>             * <a name="line.73"></a>
+<FONT color="green">074</FONT>             * @param &lt;T&gt; A {@link DatagramEncoder} sub type that can encode itself to a String.<a name="line.74"></a>
+<FONT color="green">075</FONT>             * @param encoders A list of {@link DatagramEncoder} instances to encode in a datagram string.<a name="line.75"></a>
+<FONT color="green">076</FONT>             * @return A sequence of encoded integers.<a name="line.76"></a>
+<FONT color="green">077</FONT>             * @see DatagramEncoder#encode()<a name="line.77"></a>
+<FONT color="green">078</FONT>             */<a name="line.78"></a>
+<FONT color="green">079</FONT>            public static &lt;T extends DatagramEncoder&gt; String encode(final List&lt;T&gt; encoders) {<a name="line.79"></a>
+<FONT color="green">080</FONT>                    if (encoders.contains(null)) {<a name="line.80"></a>
+<FONT color="green">081</FONT>                            throw new RuntimeException("cannot encode a null list-item, only properties are allowed to be null");<a name="line.81"></a>
+<FONT color="green">082</FONT>                    }<a name="line.82"></a>
+<FONT color="green">083</FONT>                    final StringBuilder coded = new StringBuilder(encoders.size() + VALUE_SEPERATOR);<a name="line.83"></a>
+<FONT color="green">084</FONT>                    for (final DatagramEncoder encoder : encoders) {<a name="line.84"></a>
+<FONT color="green">085</FONT>                            coded.append(encoder.encode());<a name="line.85"></a>
+<FONT color="green">086</FONT>                    }<a name="line.86"></a>
+<FONT color="green">087</FONT>                    return coded.toString();<a name="line.87"></a>
+<FONT color="green">088</FONT>            }<a name="line.88"></a>
+<FONT color="green">089</FONT>    <a name="line.89"></a>
+<FONT color="green">090</FONT>            /**<a name="line.90"></a>
+<FONT color="green">091</FONT>             * Reflectively resolves all fields on the subject which have a &lt;em&gt;getter&lt;/em&gt; method of any type of visibility.<a name="line.91"></a>
+<FONT color="green">092</FONT>             * &lt;p&gt;<a name="line.92"></a>
+<FONT color="green">093</FONT>             * The &lt;code&gt;boundaryMarkerClass&lt;/code&gt; argument controls how far up the tree we need to go to find fields to include in the encoding.<a name="line.93"></a>
+<FONT color="green">094</FONT>             * You may use &lt;code&gt;reflectiveEncode(subject, subject.getClass());&lt;/code&gt; to only encode the fields declared by the subject's class<a name="line.94"></a>
+<FONT color="green">095</FONT>             * itself.<a name="line.95"></a>
+<FONT color="green">096</FONT>             * <a name="line.96"></a>
+<FONT color="green">097</FONT>             * @param subject The object on which to invoke field queries.<a name="line.97"></a>
+<FONT color="green">098</FONT>             * @param boundaryMarkerClass Needed to be able to get fields from super classes of a subject as well if required.<a name="line.98"></a>
+<FONT color="green">099</FONT>             * @return A datagram encoded string containing all fields of the &lt;code&gt;boundaryMarkerClass&lt;/code&gt;.<a name="line.99"></a>
+<FONT color="green">100</FONT>             */<a name="line.100"></a>
+<FONT color="green">101</FONT>            public static String reflectiveEncode(final Object subject, final Class&lt;?&gt; boundaryMarkerClass) {<a name="line.101"></a>
+<FONT color="green">102</FONT>                    final Map&lt;Class&lt;?&gt;, List&lt;FieldWrapper&gt;&gt; fields = FieldUtils.collectFields(boundaryMarkerClass, boundaryMarkerClass,<a name="line.102"></a>
+<FONT color="green">103</FONT>                                    EnumSet.allOf(Visibility.class), EnumSet.of(BeanRestriction.YES_GETTER));<a name="line.103"></a>
+<FONT color="green">104</FONT>                    final List&lt;Object&gt; values = new LinkedList&lt;Object&gt;();<a name="line.104"></a>
+<FONT color="green">105</FONT>                    for (final List&lt;FieldWrapper&gt; fieldWrapperList : fields.values()) {<a name="line.105"></a>
+<FONT color="green">106</FONT>                            for (final FieldWrapper fieldWrapper : fieldWrapperList) {<a name="line.106"></a>
+<FONT color="green">107</FONT>                                    try {<a name="line.107"></a>
+<FONT color="green">108</FONT>                                            values.add(fieldWrapper.getGetter().invoke(subject));<a name="line.108"></a>
+<FONT color="green">109</FONT>                                    } catch (final IllegalArgumentException e) {<a name="line.109"></a>
+<FONT color="green">110</FONT>                                            final String msg = String.format("unable to encode property '%s'", fieldWrapper.getField().getName());<a name="line.110"></a>
+<FONT color="green">111</FONT>                                            throw new RuntimeException(msg, e);<a name="line.111"></a>
+<FONT color="green">112</FONT>                                    } catch (final IllegalAccessException e) {<a name="line.112"></a>
+<FONT color="green">113</FONT>                                            final String msg = String.format("unable to encode property '%s'", fieldWrapper.getField().getName());<a name="line.113"></a>
+<FONT color="green">114</FONT>                                            throw new RuntimeException(msg, e);<a name="line.114"></a>
+<FONT color="green">115</FONT>                                    } catch (final InvocationTargetException e) {<a name="line.115"></a>
+<FONT color="green">116</FONT>                                            final String msg = String.format("unable to encode property '%s'", fieldWrapper.getField().getName());<a name="line.116"></a>
+<FONT color="green">117</FONT>                                            throw new RuntimeException(msg, e);<a name="line.117"></a>
+<FONT color="green">118</FONT>                                    }<a name="line.118"></a>
+<FONT color="green">119</FONT>                            }<a name="line.119"></a>
+<FONT color="green">120</FONT>                    }<a name="line.120"></a>
+<FONT color="green">121</FONT>                    return encode(values.toArray());<a name="line.121"></a>
+<FONT color="green">122</FONT>            }<a name="line.122"></a>
+<FONT color="green">123</FONT>    }<a name="line.123"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>

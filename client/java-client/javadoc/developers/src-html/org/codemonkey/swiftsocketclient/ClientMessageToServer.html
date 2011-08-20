@@ -1,0 +1,102 @@
+<HTML>
+<BODY BGCOLOR="white">
+<PRE>
+<FONT color="green">001</FONT>    package org.codemonkey.swiftsocketclient;<a name="line.1"></a>
+<FONT color="green">002</FONT>    <a name="line.2"></a>
+<FONT color="green">003</FONT>    import org.codemonkey.util.DatagramEncoder;<a name="line.3"></a>
+<FONT color="green">004</FONT>    <a name="line.4"></a>
+<FONT color="green">005</FONT>    /**<a name="line.5"></a>
+<FONT color="green">006</FONT>     * Provides a default {@link DatagramEncoder} implementation that returns an empty string. The {@link #encode()} method implemented can be<a name="line.6"></a>
+<FONT color="green">007</FONT>     * used (by not overriding it in sub classes) when only the message id is important (for example with Ping Pong messages, which have no<a name="line.7"></a>
+<FONT color="green">008</FONT>     * content).<a name="line.8"></a>
+<FONT color="green">009</FONT>     * &lt;p&gt;<a name="line.9"></a>
+<FONT color="green">010</FONT>     * With this base class a message may encode itself to a &lt;code&gt;String&lt;/code&gt;. This interface is used to translate messages into so called &lt;a<a name="line.10"></a>
+<FONT color="green">011</FONT>     * href="http://gpwiki.org/index.php/Binary_Packet"&gt;Binary Packets&lt;/a&gt;, or datagrams.<a name="line.11"></a>
+<FONT color="green">012</FONT>     * &lt;p&gt;<a name="line.12"></a>
+<FONT color="green">013</FONT>     * A response string needs to built up in the following format:&lt;br /&gt;<a name="line.13"></a>
+<FONT color="green">014</FONT>     * message code (3), encoded string<a name="line.14"></a>
+<FONT color="green">015</FONT>     * &lt;p&gt;<a name="line.15"></a>
+<FONT color="green">016</FONT>     * The following example could of a login response: &lt;code&gt;005OK&lt;/code&gt;&lt;br /&gt;<a name="line.16"></a>
+<FONT color="green">017</FONT>     * The following example could of a pong notification: &lt;code&gt;999&lt;/code&gt;&lt;br /&gt;<a name="line.17"></a>
+<FONT color="green">018</FONT>     * <a name="line.18"></a>
+<FONT color="green">019</FONT>     * @author Benny Bottema<a name="line.19"></a>
+<FONT color="green">020</FONT>     * @see SwiftSocketClient#addServerResponse(ServerMessageToClient)<a name="line.20"></a>
+<FONT color="green">021</FONT>     * @see SwiftSocketClient#getNextServerResponse()<a name="line.21"></a>
+<FONT color="green">022</FONT>     * @see DatagramEncoder#encode()<a name="line.22"></a>
+<FONT color="green">023</FONT>     * @since 1.0<a name="line.23"></a>
+<FONT color="green">024</FONT>     */<a name="line.24"></a>
+<FONT color="green">025</FONT>    public abstract class ClientMessageToServer implements DatagramEncoder {<a name="line.25"></a>
+<FONT color="green">026</FONT>    <a name="line.26"></a>
+<FONT color="green">027</FONT>            /**<a name="line.27"></a>
+<FONT color="green">028</FONT>             * Default implementation which returns an empty string. This is useful for messages that have no parameters, just a message code.<a name="line.28"></a>
+<FONT color="green">029</FONT>             * <a name="line.29"></a>
+<FONT color="green">030</FONT>             * @see DatagramEncoder#encode()<a name="line.30"></a>
+<FONT color="green">031</FONT>             */<a name="line.31"></a>
+<FONT color="green">032</FONT>            @Override<a name="line.32"></a>
+<FONT color="green">033</FONT>            public String encode() {<a name="line.33"></a>
+<FONT color="green">034</FONT>                    return "";<a name="line.34"></a>
+<FONT color="green">035</FONT>            }<a name="line.35"></a>
+<FONT color="green">036</FONT>    }<a name="line.36"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>

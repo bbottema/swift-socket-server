@@ -1,0 +1,9 @@
+http://code.google.com/p/swift-socket-server/
+
+
+RELEASE NOTES Swift Socket Server and Client
+
+
+v1.0
+
+Initial upload

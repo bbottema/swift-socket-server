@@ -71,6 +71,7 @@ public class ChatServerDemo {
 	 */
 	public void updateDiscussion(final ClientContext fromClient, final String message) {
 		for (final ClientContext userContext : server.getAllClientContexts()) {
+			// isActive is optional
 			if (userContext.isActive()) {
 				server.sendMessage(new ServerToClientChatMessage(userContext, message));
 			}

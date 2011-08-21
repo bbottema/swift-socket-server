@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Whenever a client is connected or sending a message to the server, there will be a <code>ClientContext</code> associated with it.
+ * <p>
  * Contains all session data concerning a given client. Also contains a session data container for external use only. External users can
  * utilize this container to store client related (session) data for the duration of the connection.
  * <p>

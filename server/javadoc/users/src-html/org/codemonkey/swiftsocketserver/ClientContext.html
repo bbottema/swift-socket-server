@@ -9,155 +9,157 @@
 <FONT color="green">006</FONT>    import java.util.Map;<a name="line.6"></a>
 <FONT color="green">007</FONT>    <a name="line.7"></a>
 <FONT color="green">008</FONT>    /**<a name="line.8"></a>
-<FONT color="green">009</FONT>     * Contains all session data concerning a given client. Also contains a session data container for external use only. External users can<a name="line.9"></a>
-<FONT color="green">010</FONT>     * utilize this container to store client related (session) data for the duration of the connection.<a name="line.10"></a>
-<FONT color="green">011</FONT>     * &lt;p&gt;<a name="line.11"></a>
-<FONT color="green">012</FONT>     * Only the client's id and the session data container is exposed publicly. The client id is determined during construction so that even<a name="line.12"></a>
-<FONT color="green">013</FONT>     * when the connection is lost, external users can still access the client's id without connection exceptions.<a name="line.13"></a>
-<FONT color="green">014</FONT>     * &lt;p&gt;<a name="line.14"></a>
-<FONT color="green">015</FONT>     * Since {@link #clientInetAddress} does not have to be unique (multiple clients connecting from the one host), instances of this classes<a name="line.15"></a>
-<FONT color="green">016</FONT>     * also act as unique identifiers for client sockets so that the server can track multiple clients from the same host without exposing the<a name="line.16"></a>
-<FONT color="green">017</FONT>     * Socket instance itself. Doing so allows executable message objects to access a Client's session data (or send responses to a specific<a name="line.17"></a>
-<FONT color="green">018</FONT>     * client) without needing the Socket or InetAddress to identify the client.<a name="line.18"></a>
-<FONT color="green">019</FONT>     * &lt;p&gt;<a name="line.19"></a>
-<FONT color="green">020</FONT>     * This context keeps information about the client which may remain accessible even when the client has disconnected.<a name="line.20"></a>
-<FONT color="green">021</FONT>     * <a name="line.21"></a>
-<FONT color="green">022</FONT>     * @author Benny Bottema<a name="line.22"></a>
-<FONT color="green">023</FONT>     * @since 1.0<a name="line.23"></a>
-<FONT color="green">024</FONT>     */<a name="line.24"></a>
-<FONT color="green">025</FONT>    public class ClientContext {<a name="line.25"></a>
-<FONT color="green">026</FONT>    <a name="line.26"></a>
-<FONT color="green">027</FONT>            /**<a name="line.27"></a>
-<FONT color="green">028</FONT>             * Client to which this context is dedicated to. Used to read from and write to.<a name="line.28"></a>
-<FONT color="green">029</FONT>             */<a name="line.29"></a>
-<FONT color="green">030</FONT>            private final ClientEndpoint clientEndpoint;<a name="line.30"></a>
-<FONT color="green">031</FONT>    <a name="line.31"></a>
-<FONT color="green">032</FONT>            /**<a name="line.32"></a>
-<FONT color="green">033</FONT>             * Client id to which context is dedicated to. Acquired from {@link #clientInetAddress}. Kept separate for when the socket has been<a name="line.33"></a>
-<FONT color="green">034</FONT>             * closed already and the user still wants to know the original client id.<a name="line.34"></a>
-<FONT color="green">035</FONT>             */<a name="line.35"></a>
-<FONT color="green">036</FONT>            private final InetAddress clientInetAddress;<a name="line.36"></a>
-<FONT color="green">037</FONT>    <a name="line.37"></a>
-<FONT color="green">038</FONT>            /**<a name="line.38"></a>
-<FONT color="green">039</FONT>             * Flag that indicated whether the client has sent a 'Bye Bye' notification to gracefully close the connection, or when the connection<a name="line.39"></a>
-<FONT color="green">040</FONT>             * was lost somehow.<a name="line.40"></a>
-<FONT color="green">041</FONT>             */<a name="line.41"></a>
-<FONT color="green">042</FONT>            private boolean clientSaidByeBye;<a name="line.42"></a>
-<FONT color="green">043</FONT>    <a name="line.43"></a>
-<FONT color="green">044</FONT>            /**<a name="line.44"></a>
-<FONT color="green">045</FONT>             * Time stamp of the last ping message to the client.<a name="line.45"></a>
-<FONT color="green">046</FONT>             * <a name="line.46"></a>
-<FONT color="green">047</FONT>             * @see #pongReceived<a name="line.47"></a>
-<FONT color="green">048</FONT>             * @see #isPongReceived()<a name="line.48"></a>
-<FONT color="green">049</FONT>             */<a name="line.49"></a>
-<FONT color="green">050</FONT>            private long pingtime;<a name="line.50"></a>
-<FONT color="green">051</FONT>    <a name="line.51"></a>
-<FONT color="green">052</FONT>            /**<a name="line.52"></a>
-<FONT color="green">053</FONT>             * Flag that indicates whether the client has sent a 'pong' notification.<a name="line.53"></a>
-<FONT color="green">054</FONT>             * <a name="line.54"></a>
-<FONT color="green">055</FONT>             * @see #pingtime<a name="line.55"></a>
-<FONT color="green">056</FONT>             * @see #isPongReceived()<a name="line.56"></a>
-<FONT color="green">057</FONT>             */<a name="line.57"></a>
-<FONT color="green">058</FONT>            private boolean pongReceived;<a name="line.58"></a>
-<FONT color="green">059</FONT>    <a name="line.59"></a>
-<FONT color="green">060</FONT>            /**<a name="line.60"></a>
-<FONT color="green">061</FONT>             * A session scoped data container for external use only. Users can access this container to store temporary data concerning the current<a name="line.61"></a>
-<FONT color="green">062</FONT>             * client, until the connection is lost.<a name="line.62"></a>
-<FONT color="green">063</FONT>             */<a name="line.63"></a>
-<FONT color="green">064</FONT>            private final Map&lt;Object, Object&gt; sessionData = new HashMap&lt;Object, Object&gt;();<a name="line.64"></a>
-<FONT color="green">065</FONT>    <a name="line.65"></a>
-<FONT color="green">066</FONT>            /**<a name="line.66"></a>
-<FONT color="green">067</FONT>             * Stores the given client endpoint and saves its {@link InetAddress} for later use (in case the endpoint is being closed and we lose<a name="line.67"></a>
-<FONT color="green">068</FONT>             * the ability the query for the {@link InetAddress}).<a name="line.68"></a>
-<FONT color="green">069</FONT>             * &lt;p /&gt;<a name="line.69"></a>
-<FONT color="green">070</FONT>             * Furthermore initializes a timestamp to start measuring ping/pong timeouts.<a name="line.70"></a>
-<FONT color="green">071</FONT>             * <a name="line.71"></a>
-<FONT color="green">072</FONT>             * @param clientEndpoint The client with which we have established a communication channel.<a name="line.72"></a>
-<FONT color="green">073</FONT>             */<a name="line.73"></a>
-<FONT color="green">074</FONT>            public ClientContext(final ClientEndpoint clientEndpoint) {<a name="line.74"></a>
-<FONT color="green">075</FONT>                    this.clientEndpoint = clientEndpoint;<a name="line.75"></a>
-<FONT color="green">076</FONT>                    clientInetAddress = clientEndpoint.getInetAddress();<a name="line.76"></a>
-<FONT color="green">077</FONT>                    pingtime = new Date().getTime();<a name="line.77"></a>
-<FONT color="green">078</FONT>                    pongReceived = false;<a name="line.78"></a>
-<FONT color="green">079</FONT>            }<a name="line.79"></a>
-<FONT color="green">080</FONT>    <a name="line.80"></a>
-<FONT color="green">081</FONT>            /**<a name="line.81"></a>
-<FONT color="green">082</FONT>             * {@inheritDoc}<a name="line.82"></a>
-<FONT color="green">083</FONT>             */<a name="line.83"></a>
-<FONT color="green">084</FONT>            @Override<a name="line.84"></a>
-<FONT color="green">085</FONT>            public String toString() {<a name="line.85"></a>
-<FONT color="green">086</FONT>                    return String.valueOf(clientEndpoint.getInetAddress());<a name="line.86"></a>
-<FONT color="green">087</FONT>            }<a name="line.87"></a>
-<FONT color="green">088</FONT>    <a name="line.88"></a>
-<FONT color="green">089</FONT>            /**<a name="line.89"></a>
-<FONT color="green">090</FONT>             * @return {@link #clientEndpoint}.<a name="line.90"></a>
-<FONT color="green">091</FONT>             */<a name="line.91"></a>
-<FONT color="green">092</FONT>            final ClientEndpoint getClientEndpoint() {<a name="line.92"></a>
-<FONT color="green">093</FONT>                    return clientEndpoint;<a name="line.93"></a>
-<FONT color="green">094</FONT>            }<a name="line.94"></a>
-<FONT color="green">095</FONT>    <a name="line.95"></a>
-<FONT color="green">096</FONT>            /**<a name="line.96"></a>
-<FONT color="green">097</FONT>             * @return {@link #clientInetAddress}<a name="line.97"></a>
-<FONT color="green">098</FONT>             */<a name="line.98"></a>
-<FONT color="green">099</FONT>            public InetAddress getClientInetAddress() {<a name="line.99"></a>
-<FONT color="green">100</FONT>                    return clientInetAddress;<a name="line.100"></a>
-<FONT color="green">101</FONT>            }<a name="line.101"></a>
-<FONT color="green">102</FONT>    <a name="line.102"></a>
-<FONT color="green">103</FONT>            /**<a name="line.103"></a>
-<FONT color="green">104</FONT>             * @return {@link #sessionData}<a name="line.104"></a>
-<FONT color="green">105</FONT>             */<a name="line.105"></a>
-<FONT color="green">106</FONT>            public Map&lt;Object, Object&gt; getSessionData() {<a name="line.106"></a>
-<FONT color="green">107</FONT>                    return sessionData;<a name="line.107"></a>
-<FONT color="green">108</FONT>            }<a name="line.108"></a>
-<FONT color="green">109</FONT>    <a name="line.109"></a>
-<FONT color="green">110</FONT>            /**<a name="line.110"></a>
-<FONT color="green">111</FONT>             * @return {@link #pingtime}<a name="line.111"></a>
-<FONT color="green">112</FONT>             */<a name="line.112"></a>
-<FONT color="green">113</FONT>            final long getPingtime() {<a name="line.113"></a>
-<FONT color="green">114</FONT>                    return pingtime;<a name="line.114"></a>
-<FONT color="green">115</FONT>            }<a name="line.115"></a>
-<FONT color="green">116</FONT>    <a name="line.116"></a>
-<FONT color="green">117</FONT>            final void setPingtime(final long pingtime) {<a name="line.117"></a>
-<FONT color="green">118</FONT>                    this.pingtime = pingtime;<a name="line.118"></a>
-<FONT color="green">119</FONT>            }<a name="line.119"></a>
-<FONT color="green">120</FONT>    <a name="line.120"></a>
-<FONT color="green">121</FONT>            /**<a name="line.121"></a>
-<FONT color="green">122</FONT>             * @return {@link #pongReceived}<a name="line.122"></a>
-<FONT color="green">123</FONT>             */<a name="line.123"></a>
-<FONT color="green">124</FONT>            final boolean isPongReceived() {<a name="line.124"></a>
-<FONT color="green">125</FONT>                    return pongReceived;<a name="line.125"></a>
-<FONT color="green">126</FONT>            }<a name="line.126"></a>
-<FONT color="green">127</FONT>    <a name="line.127"></a>
-<FONT color="green">128</FONT>            final void setPongReceived(final boolean pongReceived) {<a name="line.128"></a>
-<FONT color="green">129</FONT>                    this.pongReceived = pongReceived;<a name="line.129"></a>
-<FONT color="green">130</FONT>            }<a name="line.130"></a>
-<FONT color="green">131</FONT>    <a name="line.131"></a>
-<FONT color="green">132</FONT>            /**<a name="line.132"></a>
-<FONT color="green">133</FONT>             * @return {@link #clientSaidByeBye}<a name="line.133"></a>
-<FONT color="green">134</FONT>             */<a name="line.134"></a>
-<FONT color="green">135</FONT>            final boolean isClientSaidByeBye() {<a name="line.135"></a>
-<FONT color="green">136</FONT>                    return clientSaidByeBye;<a name="line.136"></a>
-<FONT color="green">137</FONT>            }<a name="line.137"></a>
-<FONT color="green">138</FONT>    <a name="line.138"></a>
-<FONT color="green">139</FONT>            /**<a name="line.139"></a>
-<FONT color="green">140</FONT>             * Indicates whether the client has gone away or that the connection has been closed.<a name="line.140"></a>
-<FONT color="green">141</FONT>             * <a name="line.141"></a>
-<FONT color="green">142</FONT>             * @return !{@link #clientSaidByeBye} &amp;&amp; ! {@link ClientEndpoint#isClosed()}<a name="line.142"></a>
-<FONT color="green">143</FONT>             */<a name="line.143"></a>
-<FONT color="green">144</FONT>            public final boolean isActive() {<a name="line.144"></a>
-<FONT color="green">145</FONT>                    return !isClientSaidByeBye() &amp;&amp; !clientEndpoint.isClosed();<a name="line.145"></a>
-<FONT color="green">146</FONT>            }<a name="line.146"></a>
-<FONT color="green">147</FONT>    <a name="line.147"></a>
-<FONT color="green">148</FONT>            /**<a name="line.148"></a>
-<FONT color="green">149</FONT>             * Sets {@link #clientSaidByeBye}. In case of 'true', the socket should be closed as well in one atomic operation, to avoid reading out<a name="line.149"></a>
-<FONT color="green">150</FONT>             * a closed socket while setting Bye Bye == true.<a name="line.150"></a>
-<FONT color="green">151</FONT>             * <a name="line.151"></a>
-<FONT color="green">152</FONT>             * @param clientSaidByeBye Whether the connection has become obsolete, either because the client left gracefully or by connection error.<a name="line.152"></a>
-<FONT color="green">153</FONT>             */<a name="line.153"></a>
-<FONT color="green">154</FONT>            final void setClientSaidByeBye(final boolean clientSaidByeBye) {<a name="line.154"></a>
-<FONT color="green">155</FONT>                    this.clientSaidByeBye = clientSaidByeBye;<a name="line.155"></a>
-<FONT color="green">156</FONT>            }<a name="line.156"></a>
-<FONT color="green">157</FONT>    }<a name="line.157"></a>
+<FONT color="green">009</FONT>     * Whenever a client is connected or sending a message to the server, there will be a &lt;code&gt;ClientContext&lt;/code&gt; associated with it.<a name="line.9"></a>
+<FONT color="green">010</FONT>     * &lt;p&gt;<a name="line.10"></a>
+<FONT color="green">011</FONT>     * Contains all session data concerning a given client. Also contains a session data container for external use only. External users can<a name="line.11"></a>
+<FONT color="green">012</FONT>     * utilize this container to store client related (session) data for the duration of the connection.<a name="line.12"></a>
+<FONT color="green">013</FONT>     * &lt;p&gt;<a name="line.13"></a>
+<FONT color="green">014</FONT>     * Only the client's id and the session data container is exposed publicly. The client id is determined during construction so that even<a name="line.14"></a>
+<FONT color="green">015</FONT>     * when the connection is lost, external users can still access the client's id without connection exceptions.<a name="line.15"></a>
+<FONT color="green">016</FONT>     * &lt;p&gt;<a name="line.16"></a>
+<FONT color="green">017</FONT>     * Since {@link #clientInetAddress} does not have to be unique (multiple clients connecting from the one host), instances of this classes<a name="line.17"></a>
+<FONT color="green">018</FONT>     * also act as unique identifiers for client sockets so that the server can track multiple clients from the same host without exposing the<a name="line.18"></a>
+<FONT color="green">019</FONT>     * Socket instance itself. Doing so allows executable message objects to access a Client's session data (or send responses to a specific<a name="line.19"></a>
+<FONT color="green">020</FONT>     * client) without needing the Socket or InetAddress to identify the client.<a name="line.20"></a>
+<FONT color="green">021</FONT>     * &lt;p&gt;<a name="line.21"></a>
+<FONT color="green">022</FONT>     * This context keeps information about the client which may remain accessible even when the client has disconnected.<a name="line.22"></a>
+<FONT color="green">023</FONT>     * <a name="line.23"></a>
+<FONT color="green">024</FONT>     * @author Benny Bottema<a name="line.24"></a>
+<FONT color="green">025</FONT>     * @since 1.0<a name="line.25"></a>
+<FONT color="green">026</FONT>     */<a name="line.26"></a>
+<FONT color="green">027</FONT>    public class ClientContext {<a name="line.27"></a>
+<FONT color="green">028</FONT>    <a name="line.28"></a>
+<FONT color="green">029</FONT>            /**<a name="line.29"></a>
+<FONT color="green">030</FONT>             * Client to which this context is dedicated to. Used to read from and write to.<a name="line.30"></a>
+<FONT color="green">031</FONT>             */<a name="line.31"></a>
+<FONT color="green">032</FONT>            private final ClientEndpoint clientEndpoint;<a name="line.32"></a>
+<FONT color="green">033</FONT>    <a name="line.33"></a>
+<FONT color="green">034</FONT>            /**<a name="line.34"></a>
+<FONT color="green">035</FONT>             * Client id to which context is dedicated to. Acquired from {@link #clientInetAddress}. Kept separate for when the socket has been<a name="line.35"></a>
+<FONT color="green">036</FONT>             * closed already and the user still wants to know the original client id.<a name="line.36"></a>
+<FONT color="green">037</FONT>             */<a name="line.37"></a>
+<FONT color="green">038</FONT>            private final InetAddress clientInetAddress;<a name="line.38"></a>
+<FONT color="green">039</FONT>    <a name="line.39"></a>
+<FONT color="green">040</FONT>            /**<a name="line.40"></a>
+<FONT color="green">041</FONT>             * Flag that indicated whether the client has sent a 'Bye Bye' notification to gracefully close the connection, or when the connection<a name="line.41"></a>
+<FONT color="green">042</FONT>             * was lost somehow.<a name="line.42"></a>
+<FONT color="green">043</FONT>             */<a name="line.43"></a>
+<FONT color="green">044</FONT>            private boolean clientSaidByeBye;<a name="line.44"></a>
+<FONT color="green">045</FONT>    <a name="line.45"></a>
+<FONT color="green">046</FONT>            /**<a name="line.46"></a>
+<FONT color="green">047</FONT>             * Time stamp of the last ping message to the client.<a name="line.47"></a>
+<FONT color="green">048</FONT>             * <a name="line.48"></a>
+<FONT color="green">049</FONT>             * @see #pongReceived<a name="line.49"></a>
+<FONT color="green">050</FONT>             * @see #isPongReceived()<a name="line.50"></a>
+<FONT color="green">051</FONT>             */<a name="line.51"></a>
+<FONT color="green">052</FONT>            private long pingtime;<a name="line.52"></a>
+<FONT color="green">053</FONT>    <a name="line.53"></a>
+<FONT color="green">054</FONT>            /**<a name="line.54"></a>
+<FONT color="green">055</FONT>             * Flag that indicates whether the client has sent a 'pong' notification.<a name="line.55"></a>
+<FONT color="green">056</FONT>             * <a name="line.56"></a>
+<FONT color="green">057</FONT>             * @see #pingtime<a name="line.57"></a>
+<FONT color="green">058</FONT>             * @see #isPongReceived()<a name="line.58"></a>
+<FONT color="green">059</FONT>             */<a name="line.59"></a>
+<FONT color="green">060</FONT>            private boolean pongReceived;<a name="line.60"></a>
+<FONT color="green">061</FONT>    <a name="line.61"></a>
+<FONT color="green">062</FONT>            /**<a name="line.62"></a>
+<FONT color="green">063</FONT>             * A session scoped data container for external use only. Users can access this container to store temporary data concerning the current<a name="line.63"></a>
+<FONT color="green">064</FONT>             * client, until the connection is lost.<a name="line.64"></a>
+<FONT color="green">065</FONT>             */<a name="line.65"></a>
+<FONT color="green">066</FONT>            private final Map&lt;Object, Object&gt; sessionData = new HashMap&lt;Object, Object&gt;();<a name="line.66"></a>
+<FONT color="green">067</FONT>    <a name="line.67"></a>
+<FONT color="green">068</FONT>            /**<a name="line.68"></a>
+<FONT color="green">069</FONT>             * Stores the given client endpoint and saves its {@link InetAddress} for later use (in case the endpoint is being closed and we lose<a name="line.69"></a>
+<FONT color="green">070</FONT>             * the ability the query for the {@link InetAddress}).<a name="line.70"></a>
+<FONT color="green">071</FONT>             * &lt;p /&gt;<a name="line.71"></a>
+<FONT color="green">072</FONT>             * Furthermore initializes a timestamp to start measuring ping/pong timeouts.<a name="line.72"></a>
+<FONT color="green">073</FONT>             * <a name="line.73"></a>
+<FONT color="green">074</FONT>             * @param clientEndpoint The client with which we have established a communication channel.<a name="line.74"></a>
+<FONT color="green">075</FONT>             */<a name="line.75"></a>
+<FONT color="green">076</FONT>            public ClientContext(final ClientEndpoint clientEndpoint) {<a name="line.76"></a>
+<FONT color="green">077</FONT>                    this.clientEndpoint = clientEndpoint;<a name="line.77"></a>
+<FONT color="green">078</FONT>                    clientInetAddress = clientEndpoint.getInetAddress();<a name="line.78"></a>
+<FONT color="green">079</FONT>                    pingtime = new Date().getTime();<a name="line.79"></a>
+<FONT color="green">080</FONT>                    pongReceived = false;<a name="line.80"></a>
+<FONT color="green">081</FONT>            }<a name="line.81"></a>
+<FONT color="green">082</FONT>    <a name="line.82"></a>
+<FONT color="green">083</FONT>            /**<a name="line.83"></a>
+<FONT color="green">084</FONT>             * {@inheritDoc}<a name="line.84"></a>
+<FONT color="green">085</FONT>             */<a name="line.85"></a>
+<FONT color="green">086</FONT>            @Override<a name="line.86"></a>
+<FONT color="green">087</FONT>            public String toString() {<a name="line.87"></a>
+<FONT color="green">088</FONT>                    return String.valueOf(clientEndpoint.getInetAddress());<a name="line.88"></a>
+<FONT color="green">089</FONT>            }<a name="line.89"></a>
+<FONT color="green">090</FONT>    <a name="line.90"></a>
+<FONT color="green">091</FONT>            /**<a name="line.91"></a>
+<FONT color="green">092</FONT>             * @return {@link #clientEndpoint}.<a name="line.92"></a>
+<FONT color="green">093</FONT>             */<a name="line.93"></a>
+<FONT color="green">094</FONT>            final ClientEndpoint getClientEndpoint() {<a name="line.94"></a>
+<FONT color="green">095</FONT>                    return clientEndpoint;<a name="line.95"></a>
+<FONT color="green">096</FONT>            }<a name="line.96"></a>
+<FONT color="green">097</FONT>    <a name="line.97"></a>
+<FONT color="green">098</FONT>            /**<a name="line.98"></a>
+<FONT color="green">099</FONT>             * @return {@link #clientInetAddress}<a name="line.99"></a>
+<FONT color="green">100</FONT>             */<a name="line.100"></a>
+<FONT color="green">101</FONT>            public InetAddress getClientInetAddress() {<a name="line.101"></a>
+<FONT color="green">102</FONT>                    return clientInetAddress;<a name="line.102"></a>
+<FONT color="green">103</FONT>            }<a name="line.103"></a>
+<FONT color="green">104</FONT>    <a name="line.104"></a>
+<FONT color="green">105</FONT>            /**<a name="line.105"></a>
+<FONT color="green">106</FONT>             * @return {@link #sessionData}<a name="line.106"></a>
+<FONT color="green">107</FONT>             */<a name="line.107"></a>
+<FONT color="green">108</FONT>            public Map&lt;Object, Object&gt; getSessionData() {<a name="line.108"></a>
+<FONT color="green">109</FONT>                    return sessionData;<a name="line.109"></a>
+<FONT color="green">110</FONT>            }<a name="line.110"></a>
+<FONT color="green">111</FONT>    <a name="line.111"></a>
+<FONT color="green">112</FONT>            /**<a name="line.112"></a>
+<FONT color="green">113</FONT>             * @return {@link #pingtime}<a name="line.113"></a>
+<FONT color="green">114</FONT>             */<a name="line.114"></a>
+<FONT color="green">115</FONT>            final long getPingtime() {<a name="line.115"></a>
+<FONT color="green">116</FONT>                    return pingtime;<a name="line.116"></a>
+<FONT color="green">117</FONT>            }<a name="line.117"></a>
+<FONT color="green">118</FONT>    <a name="line.118"></a>
+<FONT color="green">119</FONT>            final void setPingtime(final long pingtime) {<a name="line.119"></a>
+<FONT color="green">120</FONT>                    this.pingtime = pingtime;<a name="line.120"></a>
+<FONT color="green">121</FONT>            }<a name="line.121"></a>
+<FONT color="green">122</FONT>    <a name="line.122"></a>
+<FONT color="green">123</FONT>            /**<a name="line.123"></a>
+<FONT color="green">124</FONT>             * @return {@link #pongReceived}<a name="line.124"></a>
+<FONT color="green">125</FONT>             */<a name="line.125"></a>
+<FONT color="green">126</FONT>            final boolean isPongReceived() {<a name="line.126"></a>
+<FONT color="green">127</FONT>                    return pongReceived;<a name="line.127"></a>
+<FONT color="green">128</FONT>            }<a name="line.128"></a>
+<FONT color="green">129</FONT>    <a name="line.129"></a>
+<FONT color="green">130</FONT>            final void setPongReceived(final boolean pongReceived) {<a name="line.130"></a>
+<FONT color="green">131</FONT>                    this.pongReceived = pongReceived;<a name="line.131"></a>
+<FONT color="green">132</FONT>            }<a name="line.132"></a>
+<FONT color="green">133</FONT>    <a name="line.133"></a>
+<FONT color="green">134</FONT>            /**<a name="line.134"></a>
+<FONT color="green">135</FONT>             * @return {@link #clientSaidByeBye}<a name="line.135"></a>
+<FONT color="green">136</FONT>             */<a name="line.136"></a>
+<FONT color="green">137</FONT>            final boolean isClientSaidByeBye() {<a name="line.137"></a>
+<FONT color="green">138</FONT>                    return clientSaidByeBye;<a name="line.138"></a>
+<FONT color="green">139</FONT>            }<a name="line.139"></a>
+<FONT color="green">140</FONT>    <a name="line.140"></a>
+<FONT color="green">141</FONT>            /**<a name="line.141"></a>
+<FONT color="green">142</FONT>             * Indicates whether the client has gone away or that the connection has been closed.<a name="line.142"></a>
+<FONT color="green">143</FONT>             * <a name="line.143"></a>
+<FONT color="green">144</FONT>             * @return !{@link #clientSaidByeBye} &amp;&amp; ! {@link ClientEndpoint#isClosed()}<a name="line.144"></a>
+<FONT color="green">145</FONT>             */<a name="line.145"></a>
+<FONT color="green">146</FONT>            public final boolean isActive() {<a name="line.146"></a>
+<FONT color="green">147</FONT>                    return !isClientSaidByeBye() &amp;&amp; !clientEndpoint.isClosed();<a name="line.147"></a>
+<FONT color="green">148</FONT>            }<a name="line.148"></a>
+<FONT color="green">149</FONT>    <a name="line.149"></a>
+<FONT color="green">150</FONT>            /**<a name="line.150"></a>
+<FONT color="green">151</FONT>             * Sets {@link #clientSaidByeBye}. In case of 'true', the socket should be closed as well in one atomic operation, to avoid reading out<a name="line.151"></a>
+<FONT color="green">152</FONT>             * a closed socket while setting Bye Bye == true.<a name="line.152"></a>
+<FONT color="green">153</FONT>             * <a name="line.153"></a>
+<FONT color="green">154</FONT>             * @param clientSaidByeBye Whether the connection has become obsolete, either because the client left gracefully or by connection error.<a name="line.154"></a>
+<FONT color="green">155</FONT>             */<a name="line.155"></a>
+<FONT color="green">156</FONT>            final void setClientSaidByeBye(final boolean clientSaidByeBye) {<a name="line.156"></a>
+<FONT color="green">157</FONT>                    this.clientSaidByeBye = clientSaidByeBye;<a name="line.157"></a>
+<FONT color="green">158</FONT>            }<a name="line.158"></a>
+<FONT color="green">159</FONT>    }<a name="line.159"></a>
 
 
 

@@ -2,7 +2,9 @@ package swiftchat;
 
 import org.codemonkey.swiftsocketclient.ServerMessageToClient;
 
-
+/**
+ * For receiving a chat message from the server.
+ */
 public class ServerToClientChatMessage implements ServerMessageToClient<ChatClient> {
 
 	private String message;

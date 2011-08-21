@@ -2,10 +2,9 @@ package swiftchat;
 
 import org.codemonkey.swiftsocketserver.ClientContext;
 import org.codemonkey.swiftsocketserver.ClientMessageToServer;
-import org.codemonkey.swiftsocketserver.UnknownMessageException;
 
 /**
- * @author Benny Bottema
+ * For receiving a chat message from the client.
  */
 public class ClientToServerChatMessage extends ClientMessageToServer<ChatServerDemo> {
 
@@ -30,8 +29,7 @@ public class ClientToServerChatMessage extends ClientMessageToServer<ChatServerD
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void execute(final ChatServerDemo controller)
-			throws UnknownMessageException {
+	public void execute(final ChatServerDemo controller) {
 		controller.updateDiscussion(getClientContext(), message);
 	}
 }

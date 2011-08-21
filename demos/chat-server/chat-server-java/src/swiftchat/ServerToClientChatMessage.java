@@ -4,7 +4,7 @@ import org.codemonkey.swiftsocketserver.ClientContext;
 import org.codemonkey.swiftsocketserver.ServerMessageToClient;
 
 /**
- * @author Benny Bottema
+ * For sending a chat message to the client.
  */
 public class ServerToClientChatMessage extends ServerMessageToClient {
 

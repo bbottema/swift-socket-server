@@ -3,8 +3,7 @@ package swiftchat;
 import org.codemonkey.swiftsocketclient.ClientMessageToServer;
 
 /**
- * This class is used to define a vocabulary with the server. The server should know the exact same 
- * type (as in: the server should be able to decode a message the same way the client encoded it).
+ * For sending a chat message to the server.
  */
 public class ClientToServerChatMessage extends ClientMessageToServer {
 	

@@ -14,8 +14,8 @@ import org.apache.log4j.Logger;
  * Worker thread for the server that is dedicated to a single client.
  * <p>
  * Sets up a child thread that listens for client input, while pinging the client to test connection. Since Java cannot detect if a client
- * closes the TCP connection, we manually test the connection by pinging the client. If the client does not respond with
- * {@link #pingPongTimeoutMs}, the server assumes the connection went dead.
+ * closes the TCP connection (it can only detect time-outs as per TCP protocol) or UDP connection, we manually test the connection by
+ * pinging the client. If the client does not respond with {@link #pingPongTimeoutMs}, the server assumes the connection went dead.
  * 
  * @author Benny Bottema
  * @see InputHandler

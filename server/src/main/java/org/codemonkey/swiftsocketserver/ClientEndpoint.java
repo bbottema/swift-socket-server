@@ -15,7 +15,8 @@ import java.util.LinkedList;
 import org.apache.log4j.Logger;
 
 /**
- * Abstraction of the client socket. Acts as a wrapper for {@link Socket} and {@link DatagramSocket} to provide uniform behavior.
+ * Abstraction of the client socket. Acts as a wrapper for {@link Socket} and {@link DatagramSocket} to provide uniform behavior. <br />
+ * See {@link ServerEndpoint} for the as server version.
  * 
  * @author Benny Bottema
  * @see ClientEndpointUDP#handleDatagramPacket(DatagramPacket)
@@ -49,7 +50,8 @@ interface ClientEndpoint {
 }
 
 /**
- * Simply delegates all calls to the {@link Socket}. This is because the {@link ClientEndpointUDP} is modeled after the TCP version.
+ * Simply delegates all calls to the {@link Socket}. This is because the {@link ClientEndpointUDP} is modeled after the TCP version:
+ * {@link ClientEndpointTCP} is a decorator for a TCP Socket, so that both the both the TCP and UDP endpoints implement the same interface.
  * 
  * @author Benny Bottema
  * @since 1.0
@@ -89,7 +91,7 @@ class ClientEndpointTCP implements ClientEndpoint {
 	}
 
 	/**
-	 * @return {@link Socket#isClosed()}. 
+	 * @return {@link Socket#isClosed()}.
 	 */
 	@Override
 	public boolean isClosed() {
@@ -228,7 +230,7 @@ class ClientEndpointUDP implements ClientEndpoint {
 	}
 
 	/**
-	 * @return {@link Socket#isClosed()}. 
+	 * @return {@link Socket#isClosed()}.
 	 */
 	@Override
 	public boolean isClosed() {

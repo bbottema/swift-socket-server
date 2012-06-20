@@ -58,8 +58,8 @@ public class ClientHandler implements Runnable {
 	private final SwiftSocketServer server;
 
 	/**
-	 * The {@link ClientContext} containing all session data concerning the client. Also contains a session data container for external use
-	 * only. External users can utilize this container to store client related data for the duration of the connection.
+	 * The {@link ClientContext} which contains all session data concerning the client. Also contains a session data container for external
+	 * use only. External users can utilize this container to store client related data for the duration of the connection.
 	 */
 	private final ClientContext clientContext;
 

@@ -14,7 +14,8 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 /**
- * Abstraction of the server socket. Acts as a wrapper for {@link ServerSocket} and {@link DatagramSocket} to provide uniform behavior.
+ * Abstraction of the server socket. Acts as a wrapper for {@link ServerSocket} and {@link DatagramSocket} to provide uniform behavior. <br />
+ * See {@link ClientEndpoint} for the as server version.
  * 
  * @author Benny Bottema
  * @see ServerEndpointTCP

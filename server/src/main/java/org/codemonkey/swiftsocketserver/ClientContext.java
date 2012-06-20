@@ -14,10 +14,10 @@ import java.util.Map;
  * Only the client's id and the session data container is exposed publicly. The client id is determined during construction so that even
  * when the connection is lost, external users can still access the client's id without connection exceptions.
  * <p>
- * Since {@link #clientInetAddress} does not have to be unique (multiple clients connecting from the one host), instances of this classes
- * also act as unique identifiers for client sockets so that the server can track multiple clients from the same host without exposing the
- * Socket instance itself. Doing so allows executable message objects to access a Client's session data (or send responses to a specific
- * client) without needing the Socket or InetAddress to identify the client.
+ * Since {@link #clientInetAddress} does not have to be unique (multiple clients connecting from one host), instances of this classes also
+ * act as unique identifiers for client sockets so that the server can track multiple clients from the same host without exposing the Socket
+ * instance itself. Doing so allows executable message objects to access a Client's session data (or send responses to a specific client)
+ * without needing the Socket or InetAddress to identify the client.
  * <p>
  * This context keeps information about the client which may remain accessible even when the client has disconnected.
  * 
@@ -38,7 +38,7 @@ public class ClientContext {
 	private final InetAddress clientInetAddress;
 
 	/**
-	 * Flag that indicated whether the client has sent a 'Bye Bye' notification to gracefully close the connection, or when the connection
+	 * Flag that indicates whether the client has sent a 'Bye Bye' notification to gracefully close the connection, or when the connection
 	 * was lost somehow.
 	 */
 	private boolean clientSaidByeBye;
@@ -69,7 +69,7 @@ public class ClientContext {
 	 * Stores the given client endpoint and saves its {@link InetAddress} for later use (in case the endpoint is being closed and we lose
 	 * the ability the query for the {@link InetAddress}).
 	 * <p />
-	 * Furthermore initializes a timestamp to start measuring ping/pong timeouts.
+	 * Furthermore initializes a timestamp to start measuring ping / pong timeouts.
 	 * 
 	 * @param clientEndpoint The client with which we have established a communication channel.
 	 */
